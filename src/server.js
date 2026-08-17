@@ -2,6 +2,7 @@ import "dotenv/config";
 import express from "express";
 import cors from "cors";
 import authRoutes from "./routes/authRoutes.js";
+import newsRoutes from "./routes/newsRoutes.js";
 
 const app = express();
 
@@ -13,6 +14,7 @@ app.get("/health", (req, res) => {
 });
 
 app.use("/api/auth", authRoutes);
+app.use("/api", newsRoutes);
 
 const PORT = process.env.PORT || 4000;
 
