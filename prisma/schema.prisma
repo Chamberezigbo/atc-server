@@ -1,0 +1,91 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model AdminUser {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  invoices Invoice[]
+
+  @@map("admin_users")
+}
+
+model NewsPost {
+  id          String   @id @default(uuid())
+  title       String
+  body        String   @db.Text
+  imageUrl    String?  @map("image_url")
+  isPublished Boolean  @default(false) @map("is_published")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("news_posts")
+}
+
+enum TestimonialStatus {
+  pending
+  approved
+  rejected
+}
+
+model Testimonial {
+  id             String            @id @default(uuid())
+  authorName     String            @map("author_name")
+  authorPhotoUrl String?           @map("author_photo_url")
+  message        String            @db.Text
+  status         TestimonialStatus @default(pending)
+  createdAt      DateTime          @default(now()) @map("created_at")
+
+  @@map("testimonials")
+}
+
+model Lead {
+  id        String   @id @default(uuid())
+  name      String
+  email     String
+  phone     String
+  message   String?  @db.Text
+  source    String   @default("whatsapp_cta")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("leads")
+}
+
+enum InvoiceStatus {
+  generated
+  sent
+}
+
+model Invoice {
+  id           String        @id @default(uuid())
+  clientName   String        @map("client_name")
+  clientEmail  String        @map("client_email")
+  issuedBy     String        @map("issued_by")
+  issuedByUser AdminUser     @relation(fields: [issuedBy], references: [id])
+  totalAmount  Decimal       @map("total_amount") @db.Decimal(10, 2)
+  status       InvoiceStatus @default(generated)
+  createdAt    DateTime      @default(now()) @map("created_at")
+
+  lineItems InvoiceLineItem[]
+
+  @@map("invoices")
+}
+
+model InvoiceLineItem {
+  id          String  @id @default(uuid())
+  invoiceId   String  @map("invoice_id")
+  invoice     Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  description String
+  quantity    Int
+  unitPrice   Decimal @map("unit_price") @db.Decimal(10, 2)
+
+  @@map("invoice_line_items")
+}
