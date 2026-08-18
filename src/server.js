@@ -3,6 +3,9 @@ import express from "express";
 import cors from "cors";
 import authRoutes from "./routes/authRoutes.js";
 import newsRoutes from "./routes/newsRoutes.js";
+import uploadRoutes from "./routes/uploadRoutes.js";
+import testimonialRoutes from "./routes/testimonialRoutes.js";
+import leadRoutes from "./routes/leadRoutes.js";
 
 const app = express();
 
@@ -15,6 +18,17 @@ app.get("/health", (req, res) => {
 
 app.use("/api/auth", authRoutes);
 app.use("/api", newsRoutes);
+app.use("/api", uploadRoutes);
+app.use("/api", testimonialRoutes);
+app.use("/api", leadRoutes);
+
+// Multer errors (bad file type, too large) land here instead of crashing
+app.use((err, req, res, next) => {
+  if (err) {
+    return res.status(400).json({ error: err.message || "Upload failed" });
+  }
+  next();
+});
 
 const PORT = process.env.PORT || 4000;
 
