@@ -1,4 +1,5 @@
 import PDFDocument from 'pdfkit'
+import { formatNairaForPdf } from '../utils/currency.js'
 
 const LAVENDER = '#a083dc'
 const TEXT_MUTED = '#5a5a5a'
@@ -55,7 +56,9 @@ export function generateInvoicePdf(invoice) {
       .text(invoice.clientName, 50, 155)
       .text(invoice.clientEmail, 50, 172)
 
-    // Line items table
+    // Line items table — "NGN 150,000.00" is wider than a "$150.00"-sized
+    // column, so Description/Qty are narrower here than a $-only layout
+    // would need, leaving Unit Price/Total room to not wrap to 2 lines.
     let y = 220
     doc.fillColor('#ffffff').rect(50, y, 495, 24).fill(LAVENDER)
     doc
@@ -63,9 +66,9 @@ export function generateInvoicePdf(invoice) {
       .fontSize(10)
       .font('Helvetica-Bold')
       .text('Description', 60, y + 7)
-      .text('Qty', 340, y + 7, { width: 50, align: 'right' })
-      .text('Unit Price', 390, y + 7, { width: 70, align: 'right' })
-      .text('Total', 470, y + 7, { width: 65, align: 'right' })
+      .text('Qty', 300, y + 7, { width: 40, align: 'right' })
+      .text('Unit Price', 345, y + 7, { width: 95, align: 'right' })
+      .text('Total', 450, y + 7, { width: 90, align: 'right' })
 
     y += 24
     doc.font('Helvetica').fillColor('#000000')
@@ -74,10 +77,10 @@ export function generateInvoicePdf(invoice) {
       const lineTotal = Number(item.quantity) * Number(item.unitPrice)
       doc
         .fontSize(10)
-        .text(item.description, 60, y + 8, { width: 270 })
-        .text(String(item.quantity), 340, y + 8, { width: 50, align: 'right' })
-        .text(`$${Number(item.unitPrice).toFixed(2)}`, 390, y + 8, { width: 70, align: 'right' })
-        .text(`$${lineTotal.toFixed(2)}`, 470, y + 8, { width: 65, align: 'right' })
+        .text(item.description, 60, y + 8, { width: 230 })
+        .text(String(item.quantity), 300, y + 8, { width: 40, align: 'right' })
+        .text(formatNairaForPdf(item.unitPrice), 345, y + 8, { width: 95, align: 'right' })
+        .text(formatNairaForPdf(lineTotal), 450, y + 8, { width: 90, align: 'right' })
       doc.moveTo(50, y + 28).lineTo(545, y + 28).strokeColor('#e6d9f5').stroke()
       y += 28
     }
@@ -88,8 +91,8 @@ export function generateInvoicePdf(invoice) {
       .fontSize(12)
       .font('Helvetica-Bold')
       .fillColor(LAVENDER)
-      .text('Total', 390, y, { width: 70, align: 'right' })
-      .text(`$${Number(invoice.totalAmount).toFixed(2)}`, 470, y, { width: 65, align: 'right' })
+      .text('Total', 345, y, { width: 60, align: 'right' })
+      .text(formatNairaForPdf(invoice.totalAmount), 400, y, { width: 140, align: 'right' })
 
     // Footer
     doc

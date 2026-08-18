@@ -8,6 +8,8 @@ import testimonialRoutes from "./routes/testimonialRoutes.js";
 import leadRoutes from "./routes/leadRoutes.js";
 import heroSlideRoutes from "./routes/heroSlideRoutes.js";
 import invoiceRoutes from "./routes/invoiceRoutes.js";
+import serviceRoutes from "./routes/serviceRoutes.js";
+import bookingRoutes from "./routes/bookingRoutes.js";
 
 const app = express();
 
@@ -25,6 +27,8 @@ app.use("/api", testimonialRoutes);
 app.use("/api", leadRoutes);
 app.use("/api", heroSlideRoutes);
 app.use("/api", invoiceRoutes);
+app.use("/api", serviceRoutes);
+app.use("/api", bookingRoutes);
 
 // Multer errors (bad file type, too large) land here instead of crashing
 app.use((err, req, res, next) => {

@@ -30,6 +30,68 @@ model HeroSlide {
   @@map("hero_slides")
 }
 
+enum ServiceCategory {
+  HOME_CARE
+  CAR_CARE
+}
+
+enum ServicePricingType {
+  PER_UNIT
+  FLAT
+}
+
+model Service {
+  id          String             @id @default(uuid())
+  name        String
+  slug        String             @unique
+  category    ServiceCategory
+  pricingType ServicePricingType @map("pricing_type")
+  unitPrice   Decimal            @map("unit_price") @db.Decimal(10, 2)
+  unitLabel   String?            @map("unit_label")
+  tierLabel   String?            @map("tier_label")
+  description String?            @db.Text
+  order       Int                @default(0)
+  isActive    Boolean            @default(true) @map("is_active")
+  createdAt   DateTime           @default(now()) @map("created_at")
+  updatedAt   DateTime           @updatedAt @map("updated_at")
+
+  @@map("services")
+}
+
+enum BookingStatus {
+  new
+  contacted
+  invoiced
+}
+
+model Booking {
+  id          String          @id @default(uuid())
+  name        String
+  email       String
+  phone       String
+  location    String
+  category    ServiceCategory
+  totalAmount Decimal         @map("total_amount") @db.Decimal(10, 2)
+  status      BookingStatus   @default(new)
+  createdAt   DateTime        @default(now()) @map("created_at")
+
+  lineItems BookingLineItem[]
+
+  @@map("bookings")
+}
+
+model BookingLineItem {
+  id          String  @id @default(uuid())
+  bookingId   String  @map("booking_id")
+  booking     Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  serviceId   String? @map("service_id")
+  description String
+  quantity    Int
+  unitPrice   Decimal @map("unit_price") @db.Decimal(10, 2)
+
+  @@map("booking_line_items")
+}
+
 model NewsPost {
   id          String   @id @default(uuid())
   title       String
