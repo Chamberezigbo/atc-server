@@ -18,6 +18,18 @@ model AdminUser {
   @@map("admin_users")
 }
 
+model HeroSlide {
+  id        String   @id @default(uuid())
+  tip       String   @db.Text
+  imageUrl  String?  @map("image_url")
+  order     Int      @default(0)
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("hero_slides")
+}
+
 model NewsPost {
   id          String   @id @default(uuid())
   title       String
