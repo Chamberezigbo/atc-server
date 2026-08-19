@@ -13,6 +13,11 @@ import bookingRoutes from "./routes/bookingRoutes.js";
 
 const app = express();
 
+// Needed so req.ip reflects the real client, not the reverse proxy
+// (cPanel/Railway both put one in front of the app) — the rate limiter
+// on /api/auth/recover-password relies on this being accurate.
+app.set("trust proxy", 1);
+
 app.use(cors());
 app.use(express.json());
 
