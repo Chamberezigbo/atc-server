@@ -1,4 +1,5 @@
 import prisma from '../db/prismaClient.js'
+import { deleteImageByUrl } from '../services/cloudinaryService.js'
 
 // Public — only active slides, in display order
 export async function getActiveHeroSlides(req, res) {
@@ -38,6 +39,11 @@ export async function updateHeroSlide(req, res) {
   const { id } = req.params
   const { tip, imageUrl, order } = req.body
 
+  const existing = await prisma.heroSlide.findUnique({ where: { id } })
+  if (!existing) {
+    return res.status(404).json({ error: 'Slide not found' })
+  }
+
   const slide = await prisma.heroSlide.update({
     where: { id },
     data: {
@@ -46,12 +52,25 @@ export async function updateHeroSlide(req, res) {
       order: order !== undefined ? Number(order) : undefined,
     },
   })
+
+  if (existing.imageUrl && existing.imageUrl !== imageUrl) {
+    await deleteImageByUrl(existing.imageUrl)
+  }
+
   res.json(slide)
 }
 
 export async function deleteHeroSlide(req, res) {
   const { id } = req.params
+
+  const existing = await prisma.heroSlide.findUnique({ where: { id } })
+  if (!existing) {
+    return res.status(404).json({ error: 'Slide not found' })
+  }
+
   await prisma.heroSlide.delete({ where: { id } })
+  await deleteImageByUrl(existing.imageUrl)
+
   res.status(204).send()
 }
 

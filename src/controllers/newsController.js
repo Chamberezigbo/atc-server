@@ -1,4 +1,5 @@
 import prisma from "../db/prismaClient.js";
+import { deleteImageByUrl } from "../services/cloudinaryService.js";
 
 // Public — only ever returns published posts. Filtering happens here,
 // server-side, never left to the frontend to "hide" unpublished ones.
@@ -35,16 +36,36 @@ export async function updateNews(req, res) {
   const { id } = req.params;
   const { title, body, imageUrl } = req.body;
 
+  const existing = await prisma.newsPost.findUnique({ where: { id } });
+  if (!existing) {
+    return res.status(404).json({ error: "Post not found" });
+  }
+
   const post = await prisma.newsPost.update({
     where: { id },
     data: { title, body, imageUrl },
   });
+
+  // A new image replaced the old one (or it was removed) — the old
+  // Cloudinary asset is now orphaned, clean it up.
+  if (existing.imageUrl && existing.imageUrl !== imageUrl) {
+    await deleteImageByUrl(existing.imageUrl);
+  }
+
   res.json(post);
 }
 
 export async function deleteNews(req, res) {
   const { id } = req.params;
+
+  const existing = await prisma.newsPost.findUnique({ where: { id } });
+  if (!existing) {
+    return res.status(404).json({ error: "Post not found" });
+  }
+
   await prisma.newsPost.delete({ where: { id } });
+  await deleteImageByUrl(existing.imageUrl);
+
   res.status(204).send();
 }
 
