@@ -75,6 +75,34 @@ export async function downloadInvoicePdf(req, res) {
   res.send(pdfBuffer)
 }
 
+// Public — a "view invoice" style share link, e.g. for the WhatsApp
+// message. No auth: protected only by the invoice's own id being an
+// unguessable UUID, the same pattern most invoicing tools use for
+// shareable links. Deliberately a separate route from the admin
+// download above rather than just removing requireAdmin from it, so
+// the admin-only path can't accidentally become public via a future
+// refactor of that route.
+export async function viewInvoicePdf(req, res) {
+  const { id } = req.params
+
+  const invoice = await prisma.invoice.findUnique({
+    where: { id },
+    include: { lineItems: true },
+  })
+  if (!invoice) {
+    return res.status(404).json({ error: 'Invoice not found' })
+  }
+
+  const pdfBuffer = await generateInvoicePdf(invoice)
+
+  res.setHeader('Content-Type', 'application/pdf')
+  res.setHeader(
+    'Content-Disposition',
+    `inline; filename="invoice-${invoice.id.slice(0, 8)}.pdf"`,
+  )
+  res.send(pdfBuffer)
+}
+
 export async function emailInvoice(req, res) {
   const { id } = req.params
 
